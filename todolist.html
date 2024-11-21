@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        h2 {
+            color: #4A90E2;
+            margin-bottom: 20px;
+        }
+
+        #welcomeMessage {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #taskInput {
+            width: calc(100% - 40px);
+            max-width: 400px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        button {
+            background-color: #4A90E2;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #357ABD;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            width: calc(100% - 40px);
+            max-width: 400px;
+        }
+
+        li {
+            background: #fff;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        li.completed {
+            text-decoration: line-through;
+            color: gray;
+            background-color: #f8f8f8;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 10px;
+            }
+            #taskInput, ul {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="welcomeMessage"></div>
+    <h2>Liste de tâches</h2>
+    <input type="text" id="taskInput" placeholder="Entrez une tâche">
+    <button onclick="addTask()">Ajouter</button>
+
+    <ul id="taskList"></ul>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        document.getElementById('welcomeMessage').textContent = `Bienvenue, ${username || 'utilisateur'}!`;
+
+        const taskList = document.getElementById('taskList');
+        const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        function saveTasks() {
+            const tasks = Array.from(document.querySelectorAll('#taskList li')).map(task => ({
+                text: task.textContent.trim(),
+                completed: task.classList.contains('completed')
+            }));
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            for (const task of savedTasks) {
+                const listItem = document.createElement('li');
+                if (task.completed) listItem.classList.add('completed');
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = task.completed;
+                checkbox.onclick = () => toggleComplete(listItem);
+
+                listItem.appendChild(checkbox);
+                listItem.appendChild(document.createTextNode(task.text));
+                taskList.appendChild(listItem);
+            }
+        }
+
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const taskValue = taskInput.value.trim();
+
+            if (!taskValue) {
+                alert("Veuillez entrer une tâche.");
+                return;
+            }
+
+            const existingTasks = document.querySelectorAll('#taskList li');
+            for (const task of existingTasks) {
+                if (task.textContent.trim() === taskValue) {
+                    alert("Cette tâche existe déjà.");
+                    return;
+                }
+            }
+
+            const listItem = document.createElement('li');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.onclick = () => toggleComplete(listItem);
+
+            listItem.appendChild(checkbox);
+            listItem.appendChild(document.createTextNode(taskValue));
+            taskList.appendChild(listItem);
+
+            taskInput.value = '';
+            saveTasks();
+        }
+
+        function toggleComplete(taskItem) {
+            taskItem.classList.toggle('completed');
+            saveTasks();
+        }
+
+        loadTasks();
+    </script>
+</body>
+</html>
